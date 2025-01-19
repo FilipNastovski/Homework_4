@@ -1,15 +1,13 @@
 # Stock Data Scraper - Refactoring and Deployment
 
-The code has been refactored for clarity, maintainability, and scalability. Additionally, it has been containerized and deployed to the cloud.
-
 ## Refactoring
 
 ### Code Improvements
 The code has been refactored to ensure clarity, maintainability, and scalability. This includes the following:
 
 - **Consistent Naming Scheme**: All variables, classes, and methods follow a consistent naming scheme to improve readability and ease of understanding.
-- **Comments and Documentation**: Extensive comments have been added throughout the codebase to describe the purpose of each class and method, making it easier for future developers to understand the code.
-- **No Repeated Code**: Repetitive code segments have been removed or refactored into reusable methods, reducing code duplication and enhancing the maintainability of the project.
+- **Comments and Documentation**: Extensive comments throughout the codebase to describe the purpose of each class and method.
+- **No Repeated Code**: Repetitive code segments have been removed or refactored into reusable methods.
 
 ### Strategy Pattern for Issuer Code Extraction
 
