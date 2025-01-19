@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis Dashboard</title>
+    <script>
+        function runScript(url, message) {
+            fetch(url, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => alert(data.message || message))
+                .catch(err => alert("Error: " + err));
+        }
+
+        function fetchData() {
+            fetch('/get_data')
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById('data-table');
+                    table.innerHTML = '<tr><th>Issuer Code</th><th>Date</th><th>Time Period</th><th>Signal</th><th>SMA_20</th><th>SMA_50</th><th>EMA_20</th><th>EMA_50</th></tr>';
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${row.issuer_code}</td>
+                            <td>${row.Date}</td>
+                            <td>${row.time_period}</td>
+                            <td>${row.Signal}</td>
+                            <td>${row.SMA_20}</td>
+                            <td>${row.SMA_50}</td>
+                            <td>${row.EMA_20}</td>
+                            <td>${row.EMA_50}</td>
+                        `;
+                        table.appendChild(tr);
+                    });
+                })
+                .catch(err => alert("Error fetching data: " + err));
+        }
+    </script>
+</head>
+<body>
+    <h1>Stock Analysis Dashboard</h1>
+    <button onclick="runScript('/run_main', 'Main script running...')">Run Main Script</button>
+    <button onclick="runScript('/run_analysis', 'Technical analysis running...')">Run Technical Analysis</button>
+    <button onclick="fetchData()">Fetch Data</button>
+    <table id="data-table" border="1">
+        <!-- Data will be dynamically inserted here -->
+    </table>
+</body>
+</html>

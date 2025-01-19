@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Stock Analysis Dashboard</h1>
+
+        <div class="controls">
+            <div class="control-group">
+                <label for="issuerDropdown">Issuer Code</label>
+                <select id="issuerDropdown">
+                    <option value="">Select Issuer</option>
+                </select>
+            </div>
+
+            <div class="control-group">
+                <label for="timePeriodDropdown">Time Period</label>
+                <select id="timePeriodDropdown">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="monthly">Monthly</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button id="scrapeDataButton">Scrape Data</button>
+                <button id="runAnalysisButton">Run Analysis</button>
+                <button id="fetchDataButton">Fetch Data</button>
+            </div>
+        </div>
+
+        <h2>Latest Analysis</h2>
+        <div id="todaysAnalysisContainer" class="table-container"></div>
+
+        <h2>Historical Analysis</h2>
+        <div id="historicalAnalysisContainer" class="table-container"></div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // Fetch issuer codes on page load
+            $.get('/get_issuer_codes', function(issuerCodes) {
+                issuerCodes.forEach(function(code) {
+                    $('#issuerDropdown').append(new Option(code, code));
+                });
+            });
+
+            function formatDate(dateString) {
+                return dateString.split(' ')[0];
+            }
+
+            function createTable(data) {
+                let output = "<table><thead><tr>";
+                const headers = Object.keys(data[0]);
+                headers.forEach(key => {
+                    output += `<th>${key}</th>`;
+                });
+                output += "</tr></thead><tbody>";
+
+                data.forEach(row => {
+                    output += "<tr>";
+                    headers.forEach(key => {
+                        let value = row[key];
+                        // Format date if the column is 'Date'
+                        if (key === 'Date' && value !== "No Data") {
+                            value = formatDate(value);
+                        }
+                        value = value === null ? "No Data" : value;
+                        output += `<td>${value}</td>`;
+                    });
+                    output += "</tr>";
+                });
+                output += "</tbody></table>";
+                return output;
+            }
+
+            $('#fetchDataButton').click(function() {
+                const issuerCode = $('#issuerDropdown').val();
+                const timePeriod = $('#timePeriodDropdown').val();
+
+                if (!issuerCode || !timePeriod) {
+                    alert("Please select an issuer code and time period.");
+                    return;
+                }
+
+                // Fetch latest analysis
+                $.get(`/fetch_latest_analysis?issuer_code=${issuerCode}&time_period=${timePeriod}`, function(data) {
+                    $('#todaysAnalysisContainer').html(createTable(data));
+
+                    // Add signal indicator with container
+                    const signal = data[0].Signal;
+                    if (signal && signal !== "No Data") {
+                        $('#todaysAnalysisContainer').append(
+                            `<div class="signal-container"><div class="signal ${signal.toLowerCase()}">${signal}</div></div>`
+                        );
+                    }
+                }).fail((xhr) => {
+                    alert(`Error: ${xhr.responseJSON?.message || "Failed to fetch latest analysis."}`);
+                });
+
+                // Fetch historical analysis
+                $.get(`/fetch_historical_analysis?issuer_code=${issuerCode}&time_period=${timePeriod}`, function(data) {
+                    $('#historicalAnalysisContainer').html(createTable(data));
+                }).fail((xhr) => {
+                    alert(`Error: ${xhr.responseJSON?.message || "Failed to fetch historical analysis."}`);
+                });
+            });
+
+            $('#scrapeDataButton').click(function() {
+                $(this).prop('disabled', true).text('Scraping...');
+                $.post('/scrape_data', function(response) {
+                    alert(response.message);
+                }).fail(function() {
+                    alert("Error running scrape data script.");
+                }).always(function() {
+                    $('#scrapeDataButton').prop('disabled', false).text('Scrape Data');
+                });
+            });
+
+            $('#runAnalysisButton').click(function() {
+                $(this).prop('disabled', true).text('Analyzing...');
+                $.post('/run_analysis', function(response) {
+                    alert(response.message);
+                }).fail(function() {
+                    alert("Error running technical analysis script.");
+                }).always(function() {
+                    $('#runAnalysisButton').prop('disabled', false).text('Run Analysis');
+                });
+            });
+        });
+    </script>
+</body>
+</html>
