@@ -22,20 +22,19 @@ This approach significantly improves the robustness of the program and ensures t
 The `IssuerCodeExtractor` class uses the **Strategy Pattern** to switch between strategies. It has a **Single Responsibility** and each strategy has a clear responsibility of its own. This ensures that each class adheres to the **Single Responsibility Principle (SRP)**, making the system easy to extend or modify in the future.
 
 ```python
-class DropdownIssuerCodeStrategy(IssuerCodeStrategy):
-    def __init__(self, url: str):
-        self.url = url
+class IssuerCodeExtractor:
+
+    def __init__(self, strategy: IssuerCodeStrategy):
+        self._strategy = strategy
+
+    def set_strategy(self, strategy: IssuerCodeStrategy):
+        self._strategy = strategy
 
     def get_issuer_codes(self) -> List[str]:
-        response = requests.get(self.url)
-        soup = BeautifulSoup(response.content, 'html.parser')
-
-        dropdown = soup.find('select', {'id': 'Code'})
-        options = dropdown.find_all('option')
-        codes = [option['value'] for option in options if option['value']]
-
-        return codes
+        """Fetch issuer codes using the current strategy"""
+        return self.filter_codes(self._strategy.get_issuer_codes())
 ```
+
 Here’s an example of a concrete implementation of the class:
 ```python
 import requests
